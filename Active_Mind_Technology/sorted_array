@@ -1,0 +1,14 @@
+// create a function that takes 2 arrays and returns 
+// an array containing every element of each array sorted
+
+function sortt(ar1, ar2) {
+  var newArr = [];
+  while (ar1.length || ar2.length) {
+    if (ar1[0] < ar2[0]) {
+      newArr.push(ar1.shift())
+    } else {
+      newArr.push(ar2.shift())
+    }
+  }
+  return newArr;
+}
