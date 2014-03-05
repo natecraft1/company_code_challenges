@@ -24,16 +24,20 @@
 	// 8 6
 	// 9
 
-	arr = [[1,2,3],[4,5,6],[7,8,9]]
+	// arr = [[1,2,3],[4,5,6],[7,8,9]];
+	arr = [[1,2,3,0],[4,5,6,0],[7,8,9,0], [0,0,0,0]];
 	// arr[i][j];
 
 	transform(arr);
 
 	function transform(ar) {
+		// the number of lines in our diagonal matrix will always be rows + columns - 1
 		var lines = ar.length + ar[0].length - 1;
+		// the length of the longest line...
 		var maxLen = ~~(ar.length + ar[0].length)/2;
 		var start = 1;
 		var lengths = [];
+		// this for loop creates an array of the lengths of each line, [1,2,3,2,1] in our case
 		for (i=0;i<lines; i++) {
 			lengths.push(start);
 			if (i+1 < maxLen) {
@@ -42,23 +46,30 @@
 				start--;
 			}
 		}
+		// after we make each line, we're going to append it to str
 		var str = "";
+		// for every line
 			for(j=0; j<lengths.length; j++) {
-				// new line
+				// make a new line
 				var line = "";
+				// i tried to do it all in one for loop but wasn't able to (idk if it's possible) so here we use a particular for loop while lengths of the lines are increasing
 				if (j < maxLen) {
+					// lengths[j] is equal to the elements in this line, so the for loop will run that many times and create that many elements
 					for(c=0; c<lengths[j]; c++) {
-			
+						// if ar[r][c], the pattern here is that r increases along rows (as we add new lines), and decreases along columns. c stays the same as we add rows, and increases across columns 
 						line += ar[lengths[j]-1-c][c] + " ";
-
+						// when we've added all the elements we need for this line, add it to str with a line break
 						if (c == lengths[j]-1) { 
 							line += "\n"; str += line; 
 						}
 	
 					}
 				} else {
+					// when we're headed down or decreasing the length of each line
 					for (r=0; r<lengths[j]; r++) {
-						line += ar[lengths[j]-r][r+1] + " ";
+						// the pattern here tripped me up, and I had to introduce another changing variable j-maxLen (or the distance from the center).  r stays the same as rows increase and decreases across columns.  c increases along rows and decreases across columns
+						line += ar[lengths[j]-r+j-maxLen][j-maxLen+r +1] + " ";
+						// that's all our elements, add the line to str;
 						if (r == lengths[j] -1) {
 							line += "\n"; str += line; 
 						}
