@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+Hey
+<script>
+	var count = 0;
+	// console.log(letsDoThis("div#id.btn.blue", "div.blue.btn"));
+	// console.log(letsDoThis("div#id img.photo", "a.btn"));
+	// console.log(letsDoThis("div#id span.text a#link.btn", "a#id.btn"));
+	// console.log(letsDoThis("a#id.btn", "div#id span.text a#link.btn"));
+	// console.log(letsDoThis("div#id img.photo a.btn.share.link", "a.btn div#id img.photo")); 
+	// <-- made changes here...
+	console.log(letsDoThis("a.btn img.photo div#id", "div#id img.photo.bw a.btn.share.link"));
+	// my strat == knock off back 2 (2), build everything thats missing in ar2[last] (2), build whatever's left in front of ar2[last] (5) - whatevers in front of "a" that they have in common (0)
+
+	// other strat ==  build entire ar2[last] (4), 
+
+	// 
+
+	// console.log(letsDoThis("", ""));
+	// console.log(letsDoThis("", ""));
+	// console.log(letsDoThis("", ""));
+	// console.log(letsDoThis("", ""));
+	// console.log(letsDoThis("", ""));
+	// console.log(letsDoThis("", ""));
+
+	function letsDoThis(h1, h2) {
+		return h1 == h2 ? 0 : processEach(h1,h2);
+	}
+	function processEach(h1, h2) {
+		var h1Split = h1.split(" ");
+		var h2Split = h2.split(" ");
+		return recurse(h1Split, h2Split);
+	}
+
+	function recurse(ar1, ar2) {
+		console.log(ar1, ar2);
+		if (ar1.length == 0) {
+			return addAllOfMe(ar2);
+		}
+		if (ar2.length == 0) {
+			return ar1.length;
+		}
+		var ar1Tags = ar1.map(function(e) { return breakdown(e)[0] });
+		var ar2Tags = ar2.map(function(e) { return breakdown(e)[0] });
+		var ar1len = ar1Tags.length;
+		var ar2len = ar2Tags.length;
+console.log(ar1Tags, ar2Tags);
+// 
+		if (ar2Tags[ar2len-1] == ar1Tags[ar1len-1]) {
+			console.log(true);
+			// maybe here we need to make sure they are exactly equal
+			var processed = process(ar1[ar1len-1], ar2[ar2len-1]);
+			console.log(processed);
+			ar1.pop();
+			ar2.pop();
+			return processed + recurse(ar1, ar2);
+
+		} else {
+			if (ar1Tags.lastIndexOf(ar2Tags[ar2len-1]) != -1) {
+				// it exists, just not in the right place
+				var index = ar1Tags.lastIndexOf(ar2Tags[ar2len-1]);
+				console.log(index);
+				// is it more efficient to chop? i. e. get rid of everything behind it.
+				var chopped = chop(ar1, ar2, ar1len, ar2len, index);
+				console.log(chopped);
+			} else {
+				ar1.push(ar2[ar2len-1]);
+				// console.log(addAllOfMe(ar2[ar2len-1]) + recurse(ar1, ar2));
+
+				return addAllOfMe(ar2[ar2len-1]) + recurse(ar1, ar2);
+
+			}
+			
+			// var append = append(ar1, ar2, ar1len, ar2len, index);
+		}
+
+// 		console.log(ar1, ar2);
+// 		if (ar2.length == 0) {
+// 			count += ar1.length;
+// 			return count;
+// 		}
+// 		if (ar1.length == 0) {
+// 			console.log("zero length")
+// 			ar2.forEach(function(e) {
+// 				count += breakdown(e).length;
+// 			});
+// 			return count;
+// 		}
+ 
+// 		var ar1Tags = ar1.map(function(e) { return breakdown(e)[0] });
+// 		var ar2Tags = ar2.map(function(e) { return breakdown(e)[0] });
+// console.log(ar1Tags, ar2Tags);
+// 		if (ar1Tags[0] != ar2Tags[0]) {
+// 			var index = ar1Tags.indexOf(ar2Tags[0]);
+// 			// there is a match, just not in order
+// 			if (index != -1) {
+// 				count =+ index;
+// 				ar1.splice(0, index);
+// 			} else {
+// 			// make the element
+// 				addAllOfMe(ar2[0]);
+// 				ar1.unshift(ar2[0]);
+// 			}
+// 			recurse(ar1, ar2);
+// 			// else means matching tags and it's in the right spot 
+// 		} else {
+// 			process(ar1[0], ar2[0]);
+// 			ar1.shift();
+// 			ar2.shift();
+// 			recurse(ar1, ar2);
+// console.log(count);
+
+// 		}
+	}
+
+	function chop(ar1, ar2, len1, len2, index) {
+		var cutCount = len1 - 1 - index;
+		console.log(index, cutCount);
+		console.log(ar1);
+		var spliced = ar1.splice(index+1, cutCount);
+		console.log(ar1);
+		return cutCount + recurse(ar1, ar2);
+	}
+
+	function addAllOfMe(strArr) {
+		var count = 0;
+		if (typeof strArr == "string") { 
+console.log("im a string");
+			return breakdown(strArr).length;
+		} else {
+console.log("im an array");
+			strArr.forEach(function(e) {
+				count += breakdown(e).length;
+			});
+			return count;
+		}
+
+	}
+	function breakdown(str) {
+		return str.split(/(?=[#.])/);
+	}
+	// compares the 2 strings or DOM hierarchies.
+	function process(h1, h2) {
+console.log(h1, h2);
+		if (h1 == h2) { return 0; }
+console.log("below");
+		var h1arr = breakdown(h1);
+		var h2arr = breakdown(h2);
+		var h1Length = h1arr.length;
+		var h2Length = h2arr.length;
+console.log(h1Length);
+		
+
+		var smallestArr = h1Length >= h2Length ? h2arr : h1arr;
+		var largestArr = smallestArr == h2arr ? h1arr : h2arr;
+		// start at one because we know the first tag is the same
+		var commonPropertyCount = 1;
+console.log(smallestArr, largestArr);
+
+		for (i = 1; i<smallestArr.length; i++) {
+			if (largestArr.indexOf(smallestArr[i]) != -1) {
+				console.log(true);
+				commonPropertyCount += 1;
+			}
+		}
+		console.log(largestArr, smallestArr, commonPropertyCount);
+		// whatever is not a common property we will need to spend an action to add or remove it, so increase the count.
+		return largestArr.length + smallestArr.length - commonPropertyCount*2;
+		// if the tagName isn't the same, we don't care, because we'll have to get rid of the one in the first string altogether
+		// if (h1arr[0] == h2arr[0]) {
+		// 	var h1Len = h1arr.length;
+		// 	var h2Len = h2arr.length;
+		//   // this for loop would represent adding extra elements in the second array to the first
+		// 	for (var i=1; i<h2Len; i++) {
+		// 		if (h1arr.indexOf(h2arr[i]) == -1) {
+		// 			++count;
+		// 		}
+		// 	}
+		// 	// this for loop would represent removing excessive elements in the first array
+		// 	for (var i=1; i<h1Len; i++) {
+		// 		if (h2arr.indexOf(h1arr[i]) == -1) {
+		// 			++count; 
+		// 		}
+		// 	}
+		// }
+	}
+</script>
+</body>
+</html>

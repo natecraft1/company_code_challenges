@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+Hey	2
+
+<script>
+console.log(letsDoThis("c a b e d", "a b c d e"));
+	function letsDoThis(h1, h2) {
+		var h1Split = h1.split(" ");
+		var h2Split = h2.split(" ");
+		var h1Tags = h1Split.map(function(element) {
+			return breakdown(element)[0];
+		});
+		var h2Tags = h2Split.map(function(element) {
+			return breakdown(element)[0];
+		});
+		console.log(h1Tags, h2Tags);
+
+		var commonElements = [];
+		h1Tags.forEach(function(e, i) {
+			var index = h2Tags.indexOf(e);
+			if (index != -1) commonElements.push({"element": e, "index": index})
+		});
+console.log(JSON.stringify(commonElements));
+		// look for lessThan's
+		var lessThans = [];
+		for (i = 0; i < commonElements.length; i++) {
+			if (i == commonElements.length-1) {
+				lessThans.push(true);
+			} else {
+				if (commonElements[i].index < commonElements[i+1].index) {
+					lessThans.push(true);
+				} else {
+					lessThans.push(false);
+				} 
+			}
+		}
+console.log(lessThans);
+		// [2 > 0 < 1 < 4 > 3]
+		// now we find the potential correctly ordered sequences.
+		// sequences(commonElements);
+// 		function sequences(ar) {
+// 			var potential = [];
+// 			ar.reduce(function(previous, current) {
+// console.log(previous, current);
+// 				if (previous.index < current.index) {
+// 					return
+// 				}
+// 			}, []);
+// 		}
+
+	}
+	// a c d b
+	// a is in place so look at c d b 
+	// c < d > b
+	// put it in its index
+
+	// c a b d 
+	// c > a < b < d
+
+	// d c a b 
+ 	// d > c > a < b
+ 	//  how do we decide whether to remove d & c or a & b 
+ 	// amount of elements we have to remove + amount it would take to rebuild them from the second array
+ 	// c < d > a < b
+ 	// last greater than...?
+
+ 	// e > c > a < b < d
+ 	// a b d
+
+ 	// c > a < b < e > d
+  // a b e are in order, b < d ? a b d are in order : a b are in order
+  // 2 possibilities a b e, and a b d 
+  // h2[e] > h2[d] ? move d : move e
+
+
+
+	function breakdown(str) {
+		return str.split(/(?=[#.])/);
+	}
+</script>
+</body>
+</html>
