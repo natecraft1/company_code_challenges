@@ -24,6 +24,12 @@
 	// 8 6
 	// 9
 
+	// [0][0]
+	// [1][0] [0][1] 
+	// [2][0] [1][1] [0][2]
+	// [2][1] [1][2] 
+	// [2][2] 
+
 	// arr = [[1,2,3],[4,5,6],[7,8,9]];
 	arr = [[1,2,3,0],[4,5,6,0],[7,8,9,0], [0,0,0,0]];
 	// arr[i][j];
@@ -79,7 +85,29 @@
 			console.log(str);
 
 	}
+	// better solution...
+	
+	// The main idea is to partition the original matrix indexed by (i,j) according to i+j.
 
+	// This is expressed in the code snippet rotated[i+j].push(arr[i][j]) below:
+
+	// arr = [[1,2,3], [4,5,6], [7,8,9]];
+
+	// var summax = (arr.length-1)*(arr[0].length-1); // max index of diagonal matrix
+	// var rotated = []; // initialize to an empty matrix of the right size
+	// for( var i=0 ; i<=summax ; ++i ) rotated.push([]);
+	// // Fill it up by partitioning the original matrix.
+	// for( var j=0 ; j<arr[0].length ; ++j )
+	//     for( var i=0 ; i<arr.length ; ++i ) rotated[i+j].push(arr[i][j]);
+	// // Print it out.
+	// for( var i=0 ; i<=summax ; ++i ) console.log(rotated[i].join(' '))
+	// Output:
+
+	// 1
+	// 4 2
+	// 7 5 3
+	// 8 6
+	// 9
 
 </script>
 
