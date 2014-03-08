@@ -25,20 +25,109 @@ console.log(letsDoThis("c a b e d", "a b c d e"));
 			if (index != -1) commonElements.push({"element": e, "index": index})
 		});
 console.log(JSON.stringify(commonElements));
-		// look for lessThan's
-		var lessThans = [];
-		for (i = 0; i < commonElements.length; i++) {
-			if (i == commonElements.length-1) {
-				lessThans.push(true);
-			} else {
-				if (commonElements[i].index < commonElements[i+1].index) {
-					lessThans.push(true);
-				} else {
-					lessThans.push(false);
-				} 
-			}
+	var arrOfIndices = commonElements.map(function(e) {
+		return e.index;
+	});
+
+	var max = Math.max.apply(null, arrOfIndices);
+	function getOrder(ce, i) {
+		var ordered = [ce[i].index];
+		for (j = i+1; j<ce.length;j++) {
+			if (ce[i].index < ce[j].index) ordered.push(ce[j].index);
 		}
-console.log(lessThans);
+		return ordered;
+	}
+	console.log(perms(commonElements));
+	var possibilities = [];
+	function perms(arr) {
+		var lowest = arr[0].index;
+		for (i=0;i<arr.length;i++) {
+			if (arr[i].index <= lowest) {
+				var order = getOrder(arr, i);
+				lowest = order[0];
+				// makePerm(order);
+			}
+			console.log(order);
+		}
+	}
+	// makePerm([2,3,5,4,6], 0);
+	// makePerm([2,5,3,4], 0);
+	console.log(possibilities);
+
+	// function makePerm(ar,idx) {
+	// 	console.log("makeperm", ar, idx);
+	// 	var cool = true;
+	// 	if (idx >= ar.length-1 && cool) { 
+	// 		console.log("pushing");
+	// 		possibilities.push(ar); return; 
+	// 	} 
+	// 	for (var i=idx;i<ar.length-1;i++) {
+	// 		if (ar[i] > ar[i+1]) {
+				
+	// 			cool = false;
+	// 			var arOne = ar.slice(0);
+	// 			arOne.splice(arOne.indexOf(ar[i]), 1);
+	// 			makePerm(arOne, i);
+	// 			// makePerm([2,3,4], 1);
+	// 			//
+	// 			var arTwo = ar.slice(0);
+	// 			arTwo.splice(arTwo.indexOf(ar[i+1]), 1);
+	// 			possibilities.push(arTwo);
+	// 			// makePerm([2,5,4], 2);
+	// 			// pushes and returns;
+	// 		}
+	// 	}
+	// 	if (cool) possibilities.push(ar);
+	// }
+
+	console.log(makePerm([2,5,1,4,6]));
+	// [[2,3,5], [2,3,4]]
+	function makePerm(ar) {
+		var newArr = [[ar[0]]];
+
+		for (var i=0; i<ar.length-1;i++) {	
+			newArr.forEach(function(array) {
+				if (array[array.length-1]<ar[i+1]) {
+					array.push(ar[i+1]);
+				} else {
+					var clone = array.slice(0);
+					clone.pop();
+					if (clone[clone.length-1] < ar[i+1]) {
+						clone.push(ar[i+1]);
+						newArr.push(clone);
+					} else {
+						newArr.push([ar[i+1]]);
+					}
+					// console.log(newArr);
+				}
+			});
+		}
+		return newArr;
+	}
+
+		// look for lessThan's
+// 		var lessThans = [];
+// 		for (i = 0; i < commonElements.length; i++) {
+// 			if (i == commonElements.length-1) {
+// 				lessThans.push(true);
+// 			} else {
+// 				if (commonElements[i].index < commonElements[i+1].index) {
+// 					lessThans.push(true);
+// 				} else {
+// 					lessThans.push(false);
+// 				} 
+// 			}
+// 		}
+// console.log(lessThans);
+	
+	
+
+	// var breakpoints = [0];
+	// ar2 = ar.reduce(function(p,c,i) { 
+	// 	if (p.index > c.index) { breakpoints.push(i) }; 
+	// 	return c;
+	// });
+
 		// [2 > 0 < 1 < 4 > 3]
 		// now we find the potential correctly ordered sequences.
 		// sequences(commonElements);
