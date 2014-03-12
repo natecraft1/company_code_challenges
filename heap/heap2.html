@@ -7,165 +7,217 @@
 Hey	2
 
 <script>
-console.log(letsDoThis("c a b e d", "a b c d e"));
+// console.log(letsDoThis("div", "div")); PASS
+// console.log(letsDoThis("div#id", "div#id")); PASS
+// console.log(letsDoThis("div#id.cls.btn", "div#id.btn.cls")); PASS
+// console.log(letsDoThis("div#id", "div")); PASS
+// console.log(letsDoThis("div#id.btn", "div")); PASS
+// console.log(letsDoThis("div#id.btn", "a.blue")); PASS
+// console.log(letsDoThis("div#id.btn.blue", "div.blue.btn")); PASS
+// MADE CHANGES HERE ^^
+// console.log(letsDoThis("div#id img.photo", "a.btn")); PASS
+// console.log(letsDoThis("a.btn", "div#id img.photo")); PASS
+// console.log(letsDoThis("div#id span.text a#link.btn", "a#id.btn")); PASS 
+// MADE CHANGES HERE ^^ (added back the excessive elements in the first array that we don't need);
+// console.log(letsDoThis("a#id.btn", "div#id span.text a#link.btn")); PASS
+// MADE CHANGES HERE ^^ (reduced .cost by 1);
+// console.log(letsDoThis("div#id img.photo a.btn.share.link","a.btn div#id img.photo")); PASS, MADE CHANGES - remove it from the original array if it's originalIndex != -1
+// console.log(letsDoThis("a.btn div#id img.photo","div#id img.photo.bw a.btn.share.link")); PASS
+// console.log(letsDoThis("a#id.btn","div#id span.text a#id.share")); PASS
+console.log(letsDoThis("a#enter.knob.green a#enter a#enter a#enter","a#enter.knob.green"));
+// console.log(letsDoThis("",""));
+// console.log(letsDoThis("",""));
+// console.log(letsDoThis("",""));
+
+// count how many of a certain tag we need ("a", 1). 
+// loop through all the elements in the first array with a matching tag until we find one that is matching or the closest one
+
 	function letsDoThis(h1, h2) {
+console.log(h1,h2);
+		if (h1 == h2) { return 0 };
 		var h1Split = h1.split(" ");
 		var h2Split = h2.split(" ");
+		var h1len = h1Split.length;
 		var h1Tags = h1Split.map(function(element) {
 			return breakdown(element)[0];
 		});
-		var h2Tags = h2Split.map(function(element) {
+console.log(h1Tags);
+		var indices = [];
+		var h2Tags = h2Split.map(function(element, i) {
+			indices.push(i);
 			return breakdown(element)[0];
 		});
-		console.log(h1Tags, h2Tags);
+console.log(h2Tags);
 
-		var commonElements = [];
-		h1Tags.forEach(function(e, i) {
-			var index = h2Tags.indexOf(e);
-			if (index != -1) commonElements.push({"element": e, "index": index})
-		});
-console.log(JSON.stringify(commonElements));
-	var arrOfIndices = commonElements.map(function(e) {
-		return e.index;
-	});
+		var commonElements = {};
 
-	var max = Math.max.apply(null, arrOfIndices);
-	function getOrder(ce, i) {
-		var ordered = [ce[i].index];
-		for (j = i+1; j<ce.length;j++) {
-			if (ce[i].index < ce[j].index) ordered.push(ce[j].index);
-		}
-		return ordered;
-	}
-	console.log(perms(commonElements));
-	var possibilities = [];
-	function perms(arr) {
-		var lowest = arr[0].index;
-		for (i=0;i<arr.length;i++) {
-			if (arr[i].index <= lowest) {
-				var order = getOrder(arr, i);
-				lowest = order[0];
-				// makePerm(order);
+		h2Tags.forEach(function(e,i) {
+			var origIdx = h1Tags.indexOf(e);
+			var duplicates = {};
+			var occurences = [];
+			h1Tags.forEach(function(item, i) {
+				if (item == e) occurences.push(i);
+			});
+			commonElements[i] = { 
+				"originalIndex": origIdx, 
+				"cost": breakdown(h2Split[i]).length, 
+				"elem": h2Split[i],
+				"occurences": occurences
 			}
-			console.log(order);
+		});
+
+		var commonIndices = [];
+		h1Tags.forEach(function(e,i) {
+			var ind = h2Tags.indexOf(e);
+			if (ind != -1) {
+				commonIndices.push(ind);
+			}
+		});
+		var commonIndLen = commonIndices.length;
+console.log("commonIndices", commonIndices);
+
+		if (commonIndices.length) {
+// initialize the process of finding the shortest possible way to match our second array
+			console.log(findLowest(makePerm(commonIndices)));
+		} else {
+			console.log(destroyAllSoftware());
 		}
+
+		function destroyAllSoftware() {
+			var clearFirstArray = h1Split.length;
+			var buildSecondArray = 0;
+			for (var i=0; i<h2Split.length; i++) {
+				buildSecondArray += breakdown(h2Split[i]).length;
+			}
+			return clearFirstArray + buildSecondArray;
+		}
+		
+
+console.log(JSON.stringify(commonElements));
+	
+		function process(h1, h2) {
+console.log("called with", h1, h2);
+			if (h1 == h2) { return 0; }
+			var h1arr = breakdown(h1);
+			var h2arr = breakdown(h2);
+		
+			var commonPropertyCount = 1;
+
+			for (i = 1; i<h1arr.length; i++) {
+				if (h2arr.indexOf(h1arr[i]) != -1) {
+					commonPropertyCount += 1;
+				}
+			}
+			return h1arr.length + h2arr.length - commonPropertyCount*2;
+		}
+
+	function findLowest(newArr) {
+		console.log("findlowest called with", newArr);
+		var lowest = Infinity;
+		for (var i=0; i<newArr.length; i++) {
+			var count = 0; 
+			var instanceArr = newArr[i];
+			// the cost of rearranging the elements we might keep
+			for (var k=0; k<instanceArr.length; k++) {
+				// call process with the matching elements from the first and second array
+				var fromFirst = h1Split[commonElements[instanceArr[k]].originalIndex];
+				var fromSecond = h2Split[instanceArr[k]];
+				count += process(fromFirst, fromSecond);
+			}
+			// the cost of building the elements we're missing
+			var elementsToMove = indices.filter(function(e) {
+				return instanceArr.indexOf(e) == -1;
+			});
+			console.log(elementsToMove);
+			for (var j=0; j<elementsToMove.length; j++) {
+				// do we have to remove them from the original array? Not if their original index was -1
+				if (commonElements[elementsToMove[j]].originalIndex != -1) {
+					count += 1;
+				}
+				count += commonElements[elementsToMove[j]].cost;
+			}
+		
+			console.log("count", count);
+			// plus the cost of removing our excessive elements
+			console.log("sdfjsdf", h1len, elementsToMove);
+			count += h1len - commonIndLen;
+
+			if (count < lowest) lowest = count;
+		}
+		return lowest;
 	}
-	// makePerm([2,3,5,4,6], 0);
-	// makePerm([2,5,3,4], 0);
-	console.log(possibilities);
 
-	// function makePerm(ar,idx) {
-	// 	console.log("makeperm", ar, idx);
-	// 	var cool = true;
-	// 	if (idx >= ar.length-1 && cool) { 
-	// 		console.log("pushing");
-	// 		possibilities.push(ar); return; 
-	// 	} 
-	// 	for (var i=idx;i<ar.length-1;i++) {
-	// 		if (ar[i] > ar[i+1]) {
-				
-	// 			cool = false;
-	// 			var arOne = ar.slice(0);
-	// 			arOne.splice(arOne.indexOf(ar[i]), 1);
-	// 			makePerm(arOne, i);
-	// 			// makePerm([2,3,4], 1);
-	// 			//
-	// 			var arTwo = ar.slice(0);
-	// 			arTwo.splice(arTwo.indexOf(ar[i+1]), 1);
-	// 			possibilities.push(arTwo);
-	// 			// makePerm([2,5,4], 2);
-	// 			// pushes and returns;
-	// 		}
-	// 	}
-	// 	if (cool) possibilities.push(ar);
-	// }
+	// letsDoThis("a#id.green div a.blue", "a.blue a#id.green div");
 
-	console.log(makePerm([2,5,1,4,6]));
-	// [[2,3,5], [2,3,4]]
+	// is it always better to leave the tags in their spot if they are in order?
+	// the cost of doing this is process(t1,t2)
+	// Considerations: 
+	// 1. if we have one a tag in the second array, and 2 side by side in the first,
+	// which one do we drop?
+
+	// letsDoThis("a#id.green a.blue", "a.blue")
+	// process(h2[0], h1[0]) < process(h2[0], h1[1]) ? 1 + process(h2[0], h1[0]) : 1 + proc
+
+	// 2. if we have 2 a tags in the second array side by side and one in the first, which one do we build?
+  
+  // letsDoThis("a.blue", "a#id.green a.blue")
+  //  process(h2[0], h1[0]) < process(h2[1], h1[0]) ? process (h2[0], h1[0]) + build h2[1]
+
+	// 3. if we have 2 tags side by side in both arrays, is it cheaper to 
+	//   A. Rebuild both?
+
+  //     letsDoThis("a.blue a#id.green.red.yellow", "a#id.green.red.yellow a.blue")
+  //       process(h1[0], h2[0]) + process(h1[1], h2[1]) == 5 + 5 = 10
+	//   B. drop the first one and rebuild it in place
+  //       1 + 2 = 3     1 + the length of the second element in the second array
+	//   C. drop the second and rebuild it in place
+	//       1 + 5 = 6   1 + the length of the first element in the second array
+
+	// 	do we have to check all these options. I think yes.
+
 	function makePerm(ar) {
+console.log(ar);
+		// start with an array of just the first element [[first element]]
 		var newArr = [[ar[0]]];
-
-		for (var i=0; i<ar.length-1;i++) {	
+		// for (<ar.length-1)
+		for (var i=0; i<ar.length-1;i++) {
+			// forEach element within newArr (can't use for here because appending to newArr within loop causes infinite loop)	
 			newArr.forEach(function(array) {
-				if (array[array.length-1]<ar[i+1]) {
+				// check if ar[i+1] is greater than the last element in each of our arrays
+				if (array[array.length-1] <= ar[i+1]) {
+					// if it is append it to that array
 					array.push(ar[i+1]);
-				} else {
-					var clone = array.slice(0);
-					clone.pop();
-					if (clone[clone.length-1] < ar[i+1]) {
-						clone.push(ar[i+1]);
-						newArr.push(clone);
-					} else {
-						newArr.push([ar[i+1]]);
-					}
-					// console.log(newArr);
+					// if it isn't and ar[i] > ar[i+1]
+				} else if (ar[i] > ar[i+1]) {
+						if (array.length == 1 || array[array.length-2] < ar[i+1]) {
+							// clone our current array
+							var clone = array.slice(0);
+							// pop off the last element of the clone
+							clone.pop();
+							// push ar[i+1] to clone
+							clone.push(ar[i+1]);
+							// and push the clone to our array 
+							newArr.push(clone);
+							// console.log(newArr);
+						}
 				}
 			});
+		}
+		// push the last element in the array
+		if (ar.length > 1) {
+			newArr.push([ar[ar.length-1]]);
 		}
 		return newArr;
 	}
 
-		// look for lessThan's
-// 		var lessThans = [];
-// 		for (i = 0; i < commonElements.length; i++) {
-// 			if (i == commonElements.length-1) {
-// 				lessThans.push(true);
-// 			} else {
-// 				if (commonElements[i].index < commonElements[i+1].index) {
-// 					lessThans.push(true);
-// 				} else {
-// 					lessThans.push(false);
-// 				} 
-// 			}
-// 		}
-// console.log(lessThans);
-	
-	
-
-	// var breakpoints = [0];
-	// ar2 = ar.reduce(function(p,c,i) { 
-	// 	if (p.index > c.index) { breakpoints.push(i) }; 
-	// 	return c;
-	// });
-
-		// [2 > 0 < 1 < 4 > 3]
-		// now we find the potential correctly ordered sequences.
-		// sequences(commonElements);
-// 		function sequences(ar) {
-// 			var potential = [];
-// 			ar.reduce(function(previous, current) {
-// console.log(previous, current);
-// 				if (previous.index < current.index) {
-// 					return
-// 				}
-// 			}, []);
-// 		}
-
 	}
-	// a c d b
-	// a is in place so look at c d b 
-	// c < d > b
-	// put it in its index
-
-	// c a b d 
-	// c > a < b < d
-
-	// d c a b 
- 	// d > c > a < b
- 	//  how do we decide whether to remove d & c or a & b 
- 	// amount of elements we have to remove + amount it would take to rebuild them from the second array
- 	// c < d > a < b
- 	// last greater than...?
-
- 	// e > c > a < b < d
- 	// a b d
-
- 	// c > a < b < e > d
-  // a b e are in order, b < d ? a b d are in order : a b are in order
-  // 2 possibilities a b e, and a b d 
-  // h2[e] > h2[d] ? move d : move e
-
-
+	function xIndOf(ar, v, idx) { 
+	  var where = ar.indexOf(v);
+	  for (i=1; i<idx; i++) {
+	    where = ar.indexOf(v, where+1);
+	  }
+	  return where;
+	}
 
 	function breakdown(str) {
 		return str.split(/(?=[#.])/);
