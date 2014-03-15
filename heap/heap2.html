@@ -24,14 +24,14 @@ Hey	2
 // console.log(letsDoThis("div#id img.photo a.btn.share.link","a.btn div#id img.photo")); PASS, MADE CHANGES - remove it from the original array if it's originalIndex != -1
 // console.log(letsDoThis("a.btn div#id img.photo","div#id img.photo.bw a.btn.share.link")); PASS
 // console.log(letsDoThis("a#id.btn","div#id span.text a#id.share")); PASS
-console.log(letsDoThis("a#enter.knob.green a#enter a#enter a#enter","a#enter.knob.green"));
+console.log(letsDoThis("a#enter a#enter.knob.green a#enter a#enter","a#enter.knob.green"));
 // console.log(letsDoThis("",""));
 // console.log(letsDoThis("",""));
 // console.log(letsDoThis("",""));
 
 // count how many of a certain tag we need ("a", 1). 
 // loop through all the elements in the first array with a matching tag until we find one that is matching or the closest one
-
+// console.log(letsDoThis("c c a d e", "a b c d e"));
 	function letsDoThis(h1, h2) {
 console.log(h1,h2);
 		if (h1 == h2) { return 0 };
@@ -53,26 +53,44 @@ console.log(h2Tags);
 
 		h2Tags.forEach(function(e,i) {
 			var origIdx = h1Tags.indexOf(e);
-			var duplicates = {};
-			var occurences = [];
+			var duplicates = {"inFirstArr": {}, "inSecondArr": {}};
+			var fArrOfIdxs = [];
+			var sArrOfIdxs = [];
 			h1Tags.forEach(function(item, i) {
-				if (item == e) occurences.push(i);
+				if (item == e) fArrOfIdxs.push(i);
 			});
+			h2Tags.forEach(function(item, i) {
+				if (item == e) sArrOfIdxs.push(i);
+			});
+			duplicates.inFirstArr.arrOfIdxs = fArrOfIdxs;
+			duplicates.inFirstArr.occurences = fArrOfIdxs.length;
+			duplicates.inSecondArr.arrOfIdxs = sArrOfIdxs;
+			duplicates.inSecondArr.occurences = sArrOfIdxs.length;
 			commonElements[i] = { 
 				"originalIndex": origIdx, 
 				"cost": breakdown(h2Split[i]).length, 
 				"elem": h2Split[i],
-				"occurences": occurences
+				"duplicates": duplicates
 			}
 		});
 
 		var commonIndices = [];
+		var used = {};
 		h1Tags.forEach(function(e,i) {
-			var ind = h2Tags.indexOf(e);
+			if (used[e]) {
+				used[e] += 1;
+				used.dups = true;
+			} else {
+				used[e] = 1;
+			}
+			// console.log("used", used);
+			var ind = xIndOf(e,h2Tags,used[e]);
+			// console.log("ind", ind);
 			if (ind != -1) {
 				commonIndices.push(ind);
 			}
 		});
+console.log(used);
 		var commonIndLen = commonIndices.length;
 console.log("commonIndices", commonIndices);
 
@@ -110,7 +128,63 @@ console.log("called with", h1, h2);
 			}
 			return h1arr.length + h2arr.length - commonPropertyCount*2;
 		}
+	function filterDuplicates(arr) {
+		// [a div a] 
+		// [a a div]
+		// [0 2] [0 1]
+console.log(arr, "filterDuplicates");
+			// [2,2,0,3,4] [0,1,2,3,4]
+			// [c,c,a,d,e]
+			var currentArr = arr[0];
+			var saveIndex;
+			var i = 0;
+			var instance = currentArr[i];
+			var h1SplitCopy = h1Split.slice(0);
+			var processedArr = [];
 
+			while (currentArr[i] == instance && i < currentArr.length) {
+				var processed = process(h2Split[instance], h1Split[i]);
+				processedArr.push(processed);
+				++i;
+			}
+			var min = Math.min.apply(null, processedArr);
+			var minIndex = processedArr.indexOf(min);
+			var removeIndices = [];
+			processedArr.forEach(function(e,i) {
+				if (i !== minIndex) { removeIndices.push(i); } 
+			});
+			var filtered = h1SplitCopy.filter(function(e,i) {
+				return removeIndices.indexOf(i) == -1;
+			});
+console.log(filtered, "filtered", h1SplitCopy);
+			return filtered;
+
+			// what does this mean? = there is more than one occurence in the first array of the element we're dealing with in the second array.
+			
+				// 1. if we have one a tag in the second array, and 2 side by side in the first,
+				// which one do we drop?
+
+				// letsDoThis("a#id.green a.blue", "a.blue")
+				// process(h2[0], h1[0]) < process(h2[0], h1[1]) ? 1 + process(h2[0], h1[0]) : 1 + proc
+
+				// 2. if we have 2 a tags in the second array side by side and one in the first, which one do we build?
+			  
+			  // letsDoThis("a.blue", "a#id.green a.blue")
+			  //  process(h2[0], h1[0]) < process(h2[1], h1[0]) ? process (h2[0], h1[0]) + build h2[1]
+
+				// 3. if we have 2 tags side by side in both arrays, is it cheaper to 
+				//   A. Rebuild both?
+
+			  //     letsDoThis("a.blue a#id.green.red.yellow", "a#id.green.red.yellow a.blue")
+			  //       process(h1[0], h2[0]) + process(h1[1], h2[1]) == 5 + 5 = 10
+				//   B. drop the first one and rebuild it in place
+			  //       1 + 2 = 3     1 + the length of the second element in the second array
+				//   C. drop the second and rebuild it in place
+				//       1 + 5 = 6   1 + the length of the first element in the second array
+
+				// 	do we have to check all these options. I think yes.
+	}
+	console.log(h1Split);
 	function findLowest(newArr) {
 		console.log("findlowest called with", newArr);
 		var lowest = Infinity;
@@ -118,7 +192,13 @@ console.log("called with", h1, h2);
 			var count = 0; 
 			var instanceArr = newArr[i];
 			// the cost of rearranging the elements we might keep
+			// [2,2,0,3,4] [0,1,2,3,4]
+			// [c,c,a,d,e]
+			// console.log(filterDuplicates(instanceArr), "filterDuplicates");
+						//           [div, a, a, a, img]
 			for (var k=0; k<instanceArr.length; k++) {
+				
+
 				// call process with the matching elements from the first and second array
 				var fromFirst = h1Split[commonElements[instanceArr[k]].originalIndex];
 				var fromSecond = h2Split[instanceArr[k]];
@@ -152,28 +232,7 @@ console.log("called with", h1, h2);
 	// is it always better to leave the tags in their spot if they are in order?
 	// the cost of doing this is process(t1,t2)
 	// Considerations: 
-	// 1. if we have one a tag in the second array, and 2 side by side in the first,
-	// which one do we drop?
-
-	// letsDoThis("a#id.green a.blue", "a.blue")
-	// process(h2[0], h1[0]) < process(h2[0], h1[1]) ? 1 + process(h2[0], h1[0]) : 1 + proc
-
-	// 2. if we have 2 a tags in the second array side by side and one in the first, which one do we build?
-  
-  // letsDoThis("a.blue", "a#id.green a.blue")
-  //  process(h2[0], h1[0]) < process(h2[1], h1[0]) ? process (h2[0], h1[0]) + build h2[1]
-
-	// 3. if we have 2 tags side by side in both arrays, is it cheaper to 
-	//   A. Rebuild both?
-
-  //     letsDoThis("a.blue a#id.green.red.yellow", "a#id.green.red.yellow a.blue")
-  //       process(h1[0], h2[0]) + process(h1[1], h2[1]) == 5 + 5 = 10
-	//   B. drop the first one and rebuild it in place
-  //       1 + 2 = 3     1 + the length of the second element in the second array
-	//   C. drop the second and rebuild it in place
-	//       1 + 5 = 6   1 + the length of the first element in the second array
-
-	// 	do we have to check all these options. I think yes.
+	
 
 	function makePerm(ar) {
 console.log(ar);
@@ -207,14 +266,16 @@ console.log(ar);
 		if (ar.length > 1) {
 			newArr.push([ar[ar.length-1]]);
 		}
-		return newArr;
+		return filterDuplicates(newArr);
 	}
 
 	}
-	function xIndOf(ar, v, idx) { 
+	function xIndOf(v, ar, idx) { 
 	  var where = ar.indexOf(v);
 	  for (i=1; i<idx; i++) {
-	    where = ar.indexOf(v, where+1);
+	  	var newInd = ar.indexOf(v, where+1);
+	    if (newInd == -1) { return where } else { where = newInd };
+	    console.log("where", where);
 	  }
 	  return where;
 	}
