@@ -24,7 +24,7 @@ Hey	2
 // console.log(letsDoThis("div#id img.photo a.btn.share.link","a.btn div#id img.photo")); PASS, MADE CHANGES - remove it from the original array if it's originalIndex != -1
 // console.log(letsDoThis("a.btn div#id img.photo","div#id img.photo.bw a.btn.share.link")); PASS
 // console.log(letsDoThis("a#id.btn","div#id span.text a#id.share")); PASS
-console.log(letsDoThis("a#enter a#enter.knob.green a#enter a#enter","a#enter.knob.green"));
+console.log(letsDoThis("a#enter.knob.green a#enter div a#enter a#enter.green","a#enter.knob.green div a#enter.green"));
 // console.log(letsDoThis("",""));
 // console.log(letsDoThis("",""));
 // console.log(letsDoThis("",""));
@@ -37,7 +37,8 @@ console.log(h1,h2);
 		if (h1 == h2) { return 0 };
 		var h1Split = h1.split(" ");
 		var h2Split = h2.split(" ");
-		var h1len = h1Split.length;
+		var h1Len = h1Split.length;
+
 		var h1Tags = h1Split.map(function(element) {
 			return breakdown(element)[0];
 		});
@@ -78,13 +79,16 @@ console.log(h2Tags);
 		var used = {};
 		h1Tags.forEach(function(e,i) {
 			if (used[e]) {
-				used[e] += 1;
-				used.dups = true;
+				if (used[e].index == i - 1) {
+					used[e].index = i;
+				} else {
+					used[e].count += 1;
+				}
 			} else {
-				used[e] = 1;
+				used[e] = {"count": 1, "index": i};
 			}
 			// console.log("used", used);
-			var ind = xIndOf(e,h2Tags,used[e]);
+			var ind = xIndOf(e,h2Tags,used[e].count);
 			// console.log("ind", ind);
 			if (ind != -1) {
 				commonIndices.push(ind);
@@ -135,29 +139,40 @@ console.log("called with", h1, h2);
 console.log(arr, "filterDuplicates");
 			// [2,2,0,3,4] [0,1,2,3,4]
 			// [c,c,a,d,e]
-			var currentArr = arr[0];
-			var saveIndex;
-			var i = 0;
-			var instance = currentArr[i];
 			var h1SplitCopy = h1Split.slice(0);
-			var processedArr = [];
 
-			while (currentArr[i] == instance && i < currentArr.length) {
-				var processed = process(h2Split[instance], h1Split[i]);
-				processedArr.push(processed);
-				++i;
+			for (var j = 0; j<arr.length; j++) {
+				var i = 0;
+				var instance = arr[j];
+				var index = 0;
+				var processedArr = [];
+				if (instance.length > 1) {
+					while (instance[i] == instance[index] && i < instance.length) {
+						var processed = process(h2Split[instance[i]], h1Split[i]);
+						processedArr.push(processed);
+						++i;
+					}
+					var min = Math.min.apply(null, processedArr);
+					var minIndex = processedArr.indexOf(min);
+					var removeIndices = [];
+					processedArr.forEach(function(e,i) {
+						if (i !== minIndex) { removeIndices.push(i); } 
+					});
+					var filteredArr = h1SplitCopy.filter(function(e,i) {
+						return removeIndices.indexOf(i) == -1;
+					});
+					var filteredIndices = arr[j].filter(function(e,i) {
+						return removeIndices.indexOf(i) == -1;
+					});
+
+					arr[j] = filteredIndices;
+					console.log(arr, "arr");
+	console.log(filteredArr, "filtered");
+				}
 			}
-			var min = Math.min.apply(null, processedArr);
-			var minIndex = processedArr.indexOf(min);
-			var removeIndices = [];
-			processedArr.forEach(function(e,i) {
-				if (i !== minIndex) { removeIndices.push(i); } 
-			});
-			var filtered = h1SplitCopy.filter(function(e,i) {
-				return removeIndices.indexOf(i) == -1;
-			});
-console.log(filtered, "filtered", h1SplitCopy);
-			return filtered;
+
+			
+			return {"arr": arr, "newh1": filteredArr};
 
 			// what does this mean? = there is more than one occurence in the first array of the element we're dealing with in the second array.
 			
@@ -185,8 +200,12 @@ console.log(filtered, "filtered", h1SplitCopy);
 				// 	do we have to check all these options. I think yes.
 	}
 	console.log(h1Split);
-	function findLowest(newArr) {
-		console.log("findlowest called with", newArr);
+	function findLowest(ps) {
+		console.log("findlowest called with", ps);
+		var newArr = ps.arr;
+		var h1Mod = ps.newh1;
+		var h1ModLen = h1Mod.length;
+
 		var lowest = Infinity;
 		for (var i=0; i<newArr.length; i++) {
 			var count = 0; 
@@ -200,15 +219,16 @@ console.log(filtered, "filtered", h1SplitCopy);
 				
 
 				// call process with the matching elements from the first and second array
-				var fromFirst = h1Split[commonElements[instanceArr[k]].originalIndex];
+				var fromFirst = h1Mod[commonElements[instanceArr[k]].originalIndex];
 				var fromSecond = h2Split[instanceArr[k]];
+console.log(process(fromFirst, fromSecond), "process(fromFirst, fromSecond)")
 				count += process(fromFirst, fromSecond);
 			}
 			// the cost of building the elements we're missing
 			var elementsToMove = indices.filter(function(e) {
 				return instanceArr.indexOf(e) == -1;
 			});
-			console.log(elementsToMove);
+			console.log(elementsToMove, "elementsToMove");
 			for (var j=0; j<elementsToMove.length; j++) {
 				// do we have to remove them from the original array? Not if their original index was -1
 				if (commonElements[elementsToMove[j]].originalIndex != -1) {
@@ -219,8 +239,8 @@ console.log(filtered, "filtered", h1SplitCopy);
 		
 			console.log("count", count);
 			// plus the cost of removing our excessive elements
-			console.log("sdfjsdf", h1len, elementsToMove);
-			count += h1len - commonIndLen;
+			console.log("sdfjsdf", h1Len, elementsToMove);
+			count += h1Len - h1ModLen;
 
 			if (count < lowest) lowest = count;
 		}
@@ -271,6 +291,7 @@ console.log(ar);
 
 	}
 	function xIndOf(v, ar, idx) { 
+		console.log(ar,"arind");
 	  var where = ar.indexOf(v);
 	  for (i=1; i<idx; i++) {
 	  	var newInd = ar.indexOf(v, where+1);
