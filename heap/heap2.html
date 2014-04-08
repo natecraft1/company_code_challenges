@@ -24,10 +24,16 @@ Hey	2
 // console.log(letsDoThis("div#id img.photo a.btn.share.link","a.btn div#id img.photo")); PASS, MADE CHANGES - remove it from the original array if it's originalIndex != -1
 // console.log(letsDoThis("a.btn div#id img.photo","div#id img.photo.bw a.btn.share.link")); PASS
 // console.log(letsDoThis("a#id.btn","div#id span.text a#id.share")); PASS
-console.log(letsDoThis("a#enter.knob.green a#enter div a#enter a#enter.green","a#enter.knob.green div a#enter.green"));
-// console.log(letsDoThis("",""));
-// console.log(letsDoThis("",""));
-// console.log(letsDoThis("",""));
+// console.log(letsDoThis("a#enter.knob.green a#enter div a#enter a#enter.green","a#enter.knob.green div a#enter.green")); PASS
+// console.log(letsDoThis("a#enter.knob.green a#enter a#enter a#enter","a#enter.knob.green")); PASS
+// console.log(letsDoThis("a#enter.knob.green","a#enter.knob.green a#enter a#enter")); PASS
+// MADE CHANGES HERE ^^ removed the conditional that determines whether we need to remove items from the original array in findLowest
+// console.log(letsDoThis("a#enter","a#enter.knob.green a#enter a#enter")); PASS
+
+// console.log(letsDoThis("header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field","header.cf.header div.nav-bar div.lc div.header-social ul.inline-list.social-list.sprite-social")); PASS
+// console.log(letsDoThis("header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field", "div.fluid.flush.homepage.split div.flush.lc.lc-island div.l-two-col div.l-main-container div.l-main ul#river1.lc-padding.river li#905418.river-block div.block.block-thumb div.block-content p.excerpt")); OFF BY 1 - 29
+
+
 
 // count how many of a certain tag we need ("a", 1). 
 // loop through all the elements in the first array with a matching tag until we find one that is matching or the closest one
@@ -142,11 +148,12 @@ console.log(arr, "filterDuplicates");
 			var h1SplitCopy = h1Split.slice(0);
 
 			for (var j = 0; j<arr.length; j++) {
-				var i = 0;
 				var instance = arr[j];
-				var index = 0;
-				var processedArr = [];
 				if (instance.length > 1) {
+					var i = 0;
+					var index = 0;
+					var processedArr = [];
+console.log("truetrue")
 					while (instance[i] == instance[index] && i < instance.length) {
 						var processed = process(h2Split[instance[i]], h1Split[i]);
 						processedArr.push(processed);
@@ -168,6 +175,8 @@ console.log(arr, "filterDuplicates");
 					arr[j] = filteredIndices;
 					console.log(arr, "arr");
 	console.log(filteredArr, "filtered");
+				} else {
+					var filteredArr = h1SplitCopy; 
 				}
 			}
 
@@ -208,6 +217,7 @@ console.log(arr, "filterDuplicates");
 
 		var lowest = Infinity;
 		for (var i=0; i<newArr.length; i++) {
+console.log("newarr", newArr);
 			var count = 0; 
 			var instanceArr = newArr[i];
 			// the cost of rearranging the elements we might keep
@@ -221,19 +231,20 @@ console.log(arr, "filterDuplicates");
 				// call process with the matching elements from the first and second array
 				var fromFirst = h1Mod[commonElements[instanceArr[k]].originalIndex];
 				var fromSecond = h2Split[instanceArr[k]];
-console.log(process(fromFirst, fromSecond), "process(fromFirst, fromSecond)")
+console.log(process(fromFirst, fromSecond), "process(fromFirst, fromSecond)", fromFirst, fromSecond)
 				count += process(fromFirst, fromSecond);
 			}
 			// the cost of building the elements we're missing
+console.log(indices, "indices");
 			var elementsToMove = indices.filter(function(e) {
 				return instanceArr.indexOf(e) == -1;
 			});
 			console.log(elementsToMove, "elementsToMove");
 			for (var j=0; j<elementsToMove.length; j++) {
 				// do we have to remove them from the original array? Not if their original index was -1
-				if (commonElements[elementsToMove[j]].originalIndex != -1) {
-					count += 1;
-				}
+				// if (commonElements[elementsToMove[j]].originalIndex != -1) {
+				// 	count += 1;
+				// }
 				count += commonElements[elementsToMove[j]].cost;
 			}
 		

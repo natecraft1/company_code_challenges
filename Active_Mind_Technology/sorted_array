@@ -1,4 +1,4 @@
-// create a function that takes 2 arrays and returns 
+// create a function that takes 2 sorted arrays and returns 
 // an array containing every element of each array sorted
 
 function sortt(ar1, ar2) {

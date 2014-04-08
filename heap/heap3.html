@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+Hey	2
+
+<script>
+// console.log(letsDoThis("div", "div")); PASS
+// console.log(letsDoThis("div#id", "div#id")); PASS
+// console.log(letsDoThis("div#id.cls.btn", "div#id.btn.cls")); PASS
+// console.log(letsDoThis("div#id", "div")); PASS
+// console.log(letsDoThis("div#id.btn", "div")); PASS
+// console.log(letsDoThis("div#id.btn", "a.blue")); PASS
+// console.log(letsDoThis("div#id.btn.blue", "div.blue.btn")); PASS
+// MADE CHANGES HERE ^^
+// console.log(letsDoThis("div#id img.photo", "a.btn")); PASS
+// console.log(letsDoThis("a.btn", "div#id img.photo")); PASS
+// console.log(letsDoThis("div#id span.text a#link.btn", "a#id.btn")); PASS 
+// MADE CHANGES HERE ^^ (added back the excessive elements in the first array that we don't need);
+// console.log(letsDoThis("a#id.btn", "div#id span.text a#link.btn")); PASS
+// MADE CHANGES HERE ^^ (reduced .cost by 1);
+// console.log(letsDoThis("div#id img.photo a.btn.share.link","a.btn div#id img.photo")); PASS, MADE CHANGES - remove it from the original array if it's originalIndex != -1
+// console.log(letsDoThis("a.btn div#id img.photo","div#id img.photo.bw a.btn.share.link")); PASS
+// console.log(letsDoThis("a#id.btn","div#id span.text a#id.share")); PASS
+// console.log(letsDoThis("a#enter.knob.green a#enter div a#enter a#enter.green","a#enter.knob.green div a#enter.green")); PASS
+// console.log(letsDoThis("a#enter.knob.green a#enter a#enter a#enter","a#enter.knob.green")); PASS
+// console.log(letsDoThis("a#enter.knob.green","a#enter.knob.green a#enter a#enter")); PASS
+// MADE CHANGES HERE ^^ removed the conditional that determines whether we need to remove items from the original array in findLowest
+// console.log(letsDoThis("a#enter","a#enter.knob.green a#enter a#enter")); PASS
+
+// console.log(letsDoThis("header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field","header.cf.header div.nav-bar div.lc div.header-social ul.inline-list.social-list.sprite-social")); PASS
+// console.log(letsDoThis("header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field", "div.fluid.flush.homepage.split div.flush.lc.lc-island div.l-two-col div.l-main-container div.l-main ul#river1.lc-padding.river li#905418.river-block div.block.block-thumb div.block-content p.excerpt")); OFF BY 1 - 29
+
+
+
+		function process(h1, h2) {
+console.log("called with", h1, h2);
+			if (h1 == h2) { return 0; }
+			var h1arr = breakdown(h1);
+			var h2arr = breakdown(h2);
+		
+			var commonPropertyCount = 1;
+
+			for (i = 1; i<h1arr.length; i++) {
+				if (h2arr.indexOf(h1arr[i]) != -1) {
+					commonPropertyCount += 1;
+				}
+			}
+			return h1arr.length + h2arr.length - commonPropertyCount*2;
+		}
+
+
+	function breakdown(str) {
+		return str.split(/(?=[#.])/);
+	}
+</script>
+</body>
+</html>
