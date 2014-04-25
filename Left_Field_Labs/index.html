@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false">
+	</script>
+	<script>
+	var LFL = '510 Victoria, Venice, CA';
+	rank_distances(LFL);
+	function rank_distances(from) {
+		var geocoder = new google.maps.Geocoder();
+		var originalLoc;	
+		var locations = [
+		{'place': 'Times Square, Manhattan, NY 10036'}, 
+		{'place':'13000 S Dakota 244, Keystone, SD 57751'}, 
+		{'place':'1600 Pennsylvania Ave NW, Washington, DC 20500'}, 
+		{'place':'Golden Gate Bridge, San Francisco, CA 94129'}, 
+		{'place':'Stonehenge, A344, Amesbury, Wiltshire SP4 7DE, United Kingdom'}, 
+		{'place': 'Great Wall of China'}, 
+		{'place':'Hollywood Sign, Los Angeles, CA'}];
+		var countDownObj = {
+	    count: locations.length,
+	    check: function() {
+	        this.count--;
+	        if (this.count == 0) this.sortPlaces();
+	    },
+	    sortPlaces: function() {
+	    	locations.sort(function(a,b) {
+	    		return a.distance > b.distance;
+	    	});
+	    }
+		};
+		
+		calculateDistances();
+		// I believe we have to kick off the distance calculations on a callback because we want to make sure that the location we'll be comparing every other location to returns it's location object before passing it into computeDistanceBetween.
+		function calculateDistances() {
+			geocoder.geocode( { 'address': from }, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					originalLoc = results[0].geometry.location;
+					for (var i = 0; i < locations.length; i++) {
+						findDistance(locations[i].place, i);
+					}
+				} else {
+				 	alert("Sorry, this is an invalid location.");
+				 	return;
+				}
+			});
+		}
+		
+		function findDistance(address, index) {
+			geocoder.geocode( { 'address': address }, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					locations[index].distance =	distanceBetween(results[0].geometry.location);
+					countDownObj.check();
+				} else {
+					console.log("One of our addresses is wrong.");
+				}
+			});
+		}
+ 		function distanceBetween(location) {
+ 			return google.maps.geometry.spherical.computeDistanceBetween(originalLoc, location);
+ 		}
+	}
+	</script>
+</head>
+<body>
+	
+</body>
+</html>
