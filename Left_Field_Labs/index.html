@@ -6,19 +6,46 @@
 	<script src="http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false">
 	</script>
 	<script>
+(function () {
 	var LFL = '510 Victoria, Venice, CA';
+	var locations = [
+	{'place': 'Times Square, Manhattan, NY 10036'}, 
+	{'place':'13000 S Dakota 244, Keystone, SD 57751'}, 
+	{'place':'1600 Pennsylvania Ave NW, Washington, DC 20500'}, 
+	{'place':'Golden Gate Bridge, San Francisco, CA 94129'}, 
+	{'place':'Stonehenge, A344, Amesbury, Wiltshire SP4 7DE, United Kingdom'}, 
+	{'place': 'Great Wall of China'}, 
+	{'place':'Hollywood Sign, Los Angeles, CA'}];
+
+	var geocoder = new google.maps.Geocoder();
+
+	var head = document.head || document.getElementsByTagName("head")[0];
+	// load d3
+	var d3script = document.createElement("script");
+	d3script.src = "http://d3js.org/d3.v3.min.js";
+	var svgExists = false;
+
+// when the window loads create an input, put it on the page, and listen for when someone presses enter to re-run the function calculating distances from the value entered to our given locations
+	window.onload = function() {
+		var body = document.body || document.getElementsByTagName("body")[0];
+		var addressInput = document.createElement("input");
+		addressInput.type = "text";
+		addressInput.value = LFL;
+		addressInput.style.display = "block";
+		body.insertBefore(addressInput, body.firstChild);
+		addressInput.onkeypress = function(event) {
+			if (event.keyCode == 13) {
+				// the String Address they enter is what we'll call our function rank distance with
+				rank_distances(this.value);
+			} 
+		}
+	}
+
 	rank_distances(LFL);
+
 	function rank_distances(from) {
-		var geocoder = new google.maps.Geocoder();
 		var originalLoc;	
-		var locations = [
-		{'place': 'Times Square, Manhattan, NY 10036'}, 
-		{'place':'13000 S Dakota 244, Keystone, SD 57751'}, 
-		{'place':'1600 Pennsylvania Ave NW, Washington, DC 20500'}, 
-		{'place':'Golden Gate Bridge, San Francisco, CA 94129'}, 
-		{'place':'Stonehenge, A344, Amesbury, Wiltshire SP4 7DE, United Kingdom'}, 
-		{'place': 'Great Wall of China'}, 
-		{'place':'Hollywood Sign, Los Angeles, CA'}];
+		// this countdownObj is only necessary since we have multiple async calls to setDistance which we are waiting for.  Every async call that finishes call countDownObj.check() and decrement countDownObj.count from locations.length to 0, when we hit 0, sort our locations array, if we haven't drawn the SVG, draw it, if we have, we only need to redraw the chart.
 		var countDownObj = {
 	    count: locations.length,
 	    check: function() {
@@ -26,20 +53,29 @@
 	        if (this.count == 0) this.sortPlaces();
 	    },
 	    sortPlaces: function() {
-	    	locations.sort(function(a,b) {
+	    	// we never want to change the order of locations, we just want to use it to draw the chart
+	    	var sorted = locations.slice(0).sort(function(a,b) {
 	    		return a.distance > b.distance;
 	    	});
+	    	if (!svgExists) {
+	    		head.insertBefore(d3script, head.firstChild);
+	    		d3script.onload = function() { 
+	    			d3_init(sorted);
+	    			svgExists = true; }
+	    	} else {
+	    			redraw(locations);
+	    	}
 	    }
 		};
-		
-		calculateDistances();
-		// I believe we have to kick off the distance calculations on a callback because we want to make sure that the location we'll be comparing every other location to returns it's location object before passing it into computeDistanceBetween.
-		function calculateDistances() {
+		calculateDistance();
+		function calculateDistance() {
+			// here we geocode the LatLng of the address passed in.  Once that returns, call distance check for each location.
 			geocoder.geocode( { 'address': from }, function(results, status) {
 				if (status == google.maps.GeocoderStatus.OK) {
 					originalLoc = results[0].geometry.location;
+					// for each of our locations call distanceCheck to add a distance property to each obj
 					for (var i = 0; i < locations.length; i++) {
-						findDistance(locations[i].place, i);
+						distanceCheck(i);
 					}
 				} else {
 				 	alert("Sorry, this is an invalid location.");
@@ -47,24 +83,112 @@
 				}
 			});
 		}
-		
-		function findDistance(address, index) {
+		function findLatLng(address, index) {
 			geocoder.geocode( { 'address': address }, function(results, status) {
 				if (status == google.maps.GeocoderStatus.OK) {
-					locations[index].distance =	distanceBetween(results[0].geometry.location);
-					countDownObj.check();
+					// set the distance property to the result of distanceBetween this location and the original location
+					locations[index].LatLng = results[0].geometry.location;
+					setDistance(locations[index]);
+					// locations[index].distance =	distanceBetween(results[0].geometry.location);
 				} else {
 					console.log("One of our addresses is wrong.");
 				}
 			});
 		}
- 		function distanceBetween(location) {
- 			return google.maps.geometry.spherical.computeDistanceBetween(originalLoc, location);
+ 		function distanceCheck(index) {
+ 			// here we check whether we've already found the LatLng's for our static locations
+ 			// if we have, set the distance
+ 			// if we haven't compute latLng
+ 			var loc = locations[index];
+ 			if (loc.LatLng) {
+ 				setDistance(loc);
+ 			} else {
+ 				findLatLng(loc.place, index)
+ 			}
+ 		}
+ 		function setDistance(location) {
+ 			location.distance = google.maps.geometry.spherical.computeDistanceBetween(originalLoc, location.LatLng);
+ 			// check whether that's all of our locations
+ 			countDownObj.check();
  		}
 	}
+	// d3 stuff
+	function d3_init(data) {
+		var height = 400;
+		var width = locations.length * 100;
+		var svg = d3.select("body").append("svg")
+			.attr("height", height)
+			.attr("width", width);
+
+		var text = svg.append("text")
+			.attr("class", "place")
+			.attr("x", 0)
+			.attr("y", 20);
+
+		drawChart(data);
+	}
+	function drawChart(locations) {
+		console.log(JSON.stringify(locations), "locations");
+		var height = 400;
+		var to_miles = .00062137;
+		var text = d3.select("text");
+		var barScale = d3.scale.linear()
+		    .domain([0, d3.max(locations.map(function(loc) { return loc.distance }))])
+		    .range([height, 0]);
+
+		var colorScale = d3.scale.category10();
+
+		var bar = d3.select('svg').selectAll("g")
+			.data(locations)
+			.enter()
+			.append("g")
+			.attr("transform", function(d,i) { return "translate(" + i*100 + ",0)" })
+			.on("mouseover", function(d) {
+				d3.select(this.children[0])
+				.attr("opacity", .5)
+				.classed("active", true);
+				text.text(d.place + " - " + (d.distance*to_miles).toLocaleString() + " mi");
+			})
+			.on("mouseout", function(d) {
+				d3.select(".active")
+				.attr("opacity", 1)
+				.classed("active", false);
+				text.text("");
+			});
+
+		bar.append("rect")
+			.attr("y", height)
+			.attr("height", 0)
+			.attr("width", 22)
+			.attr("fill", "white")
+			.transition()
+			.duration(1000)
+			.attr("y", function(d) { return barScale(d.distance)})
+			.attr("height", function(d) { return height - barScale(d.distance)})
+			.attr("width", 77)
+			.attr("fill", function(d,i) { return colorScale(i)});
+		} 
+		function redraw(locations) {
+			var height = 400;
+			var barScale = d3.scale.linear()
+			    .domain([0, d3.max(locations.map(function(loc) { return loc.distance }))])
+			    .range([height, 0]);
+
+			d3.selectAll("rect")
+				.data(locations)
+				.transition()
+				.duration(1000)
+				.attr("y", function(d) {
+					return barScale(d.distance);
+				})
+				.attr("height", function(d) {
+					return height - barScale(d.distance);
+				});
+		}
+})();
+	
 	</script>
 </head>
 <body>
-	
 </body>
 </html>
