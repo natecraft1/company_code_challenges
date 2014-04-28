@@ -123,15 +123,16 @@
 		var svg = d3.select("body").append("svg")
 			.attr("height", height)
 			.attr("width", width);
-			
+
 		// distanceBox is used to display the distance in miles on mouseover
 		var distanceBox = svg.append("text")
 			.attr("class","distance")
-			.attr("y", 30);
+			.attr("y", 30)
+			.attr("x", 15);
 		
 		var barScale = d3.scale.linear()
 		    .domain([0, d3.max(locations.map(function(loc) { return loc.distance }))])
-		    .range([height, 0]);
+		    .range([height-20, 0]);
 
 		var colorScale = d3.scale.category10();
 
@@ -179,7 +180,7 @@
 		var height = 460;
 		var barScale = d3.scale.linear()
 		    .domain([0, d3.max(locations.map(function(loc) { return loc.distance }))])
-		    .range([height, 0]);
+		    .range([height-20, 0]);
 
 		d3.selectAll("g")
 			.data(locations, function(d) {
