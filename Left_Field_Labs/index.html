@@ -67,7 +67,7 @@
 	    			svgExists = true; 
 	    		}
 	    	} else {
-	    			redraw(sorted);
+	    		redraw(sorted);
 	    	}
 	    }
 		};
@@ -173,6 +173,8 @@
 			.attr("y", height - 3)
 			.attr("x", function(d,i) { return ((i*100)+14) })
 			.attr("transform", function(d,i) { return "rotate(270 "+ ((i*100)+14) + "," + (height - 3) + ")"; })
+			.attr("font-family", "Helvetica")
+			.attr("font-size", 14)
 			.text(function(d) { return d.place; });
 	}
 
@@ -197,7 +199,7 @@
 				return d.place;
 			})
 			.transition()
-			.duration(1000)
+			.duration(600)
 			.attr("y", function(d) {
 				return barScale(d.distance);
 			})
