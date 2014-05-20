@@ -1,0 +1,14 @@
+button {
+	position: absolute;
+}
+#two {
+	left: 50px;
+}
+#bucket1 {
+	float: right;
+	width: 200px;
+	height: 300px;
+	border: 1px solid grey;
+	border-radius: 15px;
+	opacity: .2;	
+}

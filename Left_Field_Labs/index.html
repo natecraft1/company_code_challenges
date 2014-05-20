@@ -42,7 +42,6 @@
 			} 
 		}
 	}
-
 	rank_distances(LFL);
 
 	function rank_distances(from) {
@@ -191,7 +190,7 @@
 			})
 			.select("text")
 			.transition()
-			.duration(1000)
+			.duration(700)
 			.attr("x", function(d,i) { return ((i*barWidth)+14) })
 			.attr("transform", function(d,i) { return "rotate(270 "+ ((i*barWidth)+14) + "," + (height - 3) + ")"; });
 
@@ -200,12 +199,14 @@
 				return d.place;
 			})
 			.transition()
-			.duration(600)
-			.attr("y", function(d) {
-				return barScale(d.distance);
-			})
+			.duration(1100)
 			.attr("x", function(d,i) {
 				return i*barWidth + 20;
+			})
+			.transition()
+			.duration(1000)
+			.attr("y", function(d) {
+				return barScale(d.distance);
 			})
 			.attr("height", function(d) {
 				return height - barScale(d.distance);

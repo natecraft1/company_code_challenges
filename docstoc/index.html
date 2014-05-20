@@ -1,68 +1,17 @@
 <!doctype html>
-<html lang="en" ng-app>
+<html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<title>Document</title>
-	<script src="https://cdn.jsdelivr.net/snap.svg/0.2.0/snap.svg-min.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Cabin+Condensed:700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet/less" type="text/css" href="trial_css.less" />
+	<script src="less.js" type="text/javascript"></script>
+
 </head>
+
 <body>
-
-<script>
-	var s = Snap("60%", "100%");
-	var lake = s.image("imgs/lake-figure-color.svg", 0, 0);
-	
-	// lake.attr("width") wasn't working so...
-	var lakeWidth = document.getElementsByTagName("image")[0].getAttribute("width");
-	console.log(lakeWidth);
-	var current_scale = 1;
-	var scale_factor = current_scale * 1.1;
-	var m = new Snap.Matrix();
-	m.scale(scale_factor, 1.1, 0, 0);
-	m.translate(-15,-15);
-
-	// lake.animate({ "transform": m }, 2000, function() {
-		// m.scale(current_scale/1.1, 1, 0, -100);
-		// // m.translate(20, 20);
-		// lake.animate({ "transform": m }, 2000);
-	// });
-
- 	var step = {
-		"count": 0,
-		"check": function() {
-			return buckets.one.height == buckets.gallons || buckets.two.height == buckets.gallons;
-		}
-	}
-	var buckets = {"one": {"height": 0 }, "two": {"height": 0}};
-	water(5, 11, 4);
-	function water(x,y,z) {
-		buckets.one.size = x;
-		buckets.two.size = y;
-		buckets.gallons = z;
-		while (!step.check() && step.count < 100) {
-			if (buckets.two.height == 0) {
-				fill(buckets.two);
-			} else if (buckets.two.height == buckets.two.size
-				|| buckets.one.height == 0) {
-				transfer(buckets.two, buckets.one);
-			} else if (buckets.one.height == buckets.one.size) {
-				empty(buckets.one);
-			}
-			step.count += 1;
-		}
-	}
-	function fill(bucket) {
-		bucket.height = bucket.size;
-	}
-	function transfer(from, to) {
-		var alotted = to.size - to.height;
-		var desired = from.height;
-		var actual_amount = desired > alotted ? alotted : desired;
-		from.height -= actual_amount;
-		to.height += actual_amount;
-	}
-	function empty(bucket) {
-		bucket.height = 0;
-	}
-</script>
+	<div class="loading wave">
+  	Loading
+	</div>
 </body>
 </html>
