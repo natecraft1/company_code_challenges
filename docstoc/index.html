@@ -47,7 +47,8 @@
 	var b1Element = document.getElementById("b1"), b2Element = document.getElementById("b2");
 	var targetSpan = document.getElementById("target").firstElementChild;
 	var possibleButton = document.getElementById("possible");
-	var hintmode = false, hintSteps;
+	var hintmode = false, hintSteps, section = null;
+
 	var buckets = { 
 		"b1": {"elem": b1Element, "size": 5}, 
 	  "b2": {"elem": b2Element, "size": 3},
@@ -79,6 +80,7 @@
 	setup(buckets.b1.size, buckets.b2.size);
 
 	function setup(size1, size2) {
+		section = null;
 		var larger = Math.max(size1, size2);
 		var smaller = size1 == larger ? size2 : size1; 
 		buckets.b1.size = larger;
@@ -218,31 +220,74 @@
 			}
 		}	
 	}
-	function hintMode() {
-		console.log(hintmode);
-		if (hintmode) { 
-			hideOrShowAll(1); 
-			hintmode = false;
-			possibleButton.innerHTML = "Show Hints"; 
-			hideExcept();
-			return;
-		};
+	// function hintMode() {
+	// 	if (hintmode) { 
+	// 		hideOrShowAll(1); 
+	// 		hideExcept();
+	// 		hintmode = false;
+	// 		possibleButton.innerHTML = "Show Hints"; 
+	// 		return;
+	// 	};
 
-		possibleButton.innerHTML = "Hide Hints";
-		hintmode = true;
-		var currentStep, section;
-		// find which current state is closer to the end;
+	// 	possibleButton.innerHTML = "Hide Hints";
+	// 	hintmode = true;
+	// 	hideOrShowAll(0);
+	// 	var currentStep, section;
+	// 	// find which current state is closer to the end;
+	// 	if (!hintSteps) {
+	// 		var startWithOne = trial(buckets.b1.size, buckets.b2.size, buckets.requiredGallons);
+	// 		var startWithTwo = trial(buckets.b2.size, buckets.b1.size, buckets.requiredGallons);
+	// 		if (startWithOne.count < startWithTwo.count) {
+	// 			steps = startWithOne.steps;
+	// 		} else {
+	// 			steps = startWithTwo.steps;
+	// 		}
+	// 		hintSteps = steps.slice(currentIndex(steps)+1);
+	// 	} 		
+	// 	hideExcept();
+	// }
+	function hintMode() {
+		var steps, emptying;
 		if (!hintSteps) {
+			console.log("no hintSteps");
 			var startWithOne = trial(buckets.b1.size, buckets.b2.size, buckets.requiredGallons);
 			var startWithTwo = trial(buckets.b2.size, buckets.b1.size, buckets.requiredGallons);
 			if (startWithOne.count < startWithTwo.count) {
 				steps = startWithOne.steps;
+				section = "b1Wrapper";
 			} else {
 				steps = startWithTwo.steps;
+				section = 'b2Wrapper';
 			}
-			hintSteps = steps.slice(currentIndex(steps)+1);
-		} 		
-		hideExcept();
+			// console.log(steps, currentIndex(steps));
+			hintSteps = steps.slice(currentIndex(steps)+2);
+			// console.log(hintSteps);
+			console.log(section);
+			hideOrShowAll(0);
+			setActiveElem(currentElem());
+		
+		} else {
+			if (hintmode) {
+				console.log(hintmode);
+				hideOrShowAll(1);
+				unsetActiveElem(document.getElementsByClassName("active")[0]);
+			} else {
+				console.log("else")
+				hideOrShowAll(0);
+				setActiveElem(currentElem());
+			}
+		}
+		toggleHintMode();
+	}
+	function toggleHintMode() {
+		hintmode = hintmode == false ? true : false;
+	}
+	function setActiveElem(elem) {
+		elem.style.opacity = 1;
+		elem.className = elem.className + " active";
+	}
+	function unsetActiveElem(elem) {
+		elem.className = elem.className.replace(" active", "");
 	}
 	function currentIndex(steps) {
 		for (var i = steps.length - 1; i >= 0; i--) {
@@ -251,26 +296,44 @@
 			} else { return 0 };
 		}
 	}
+	function swapSection(section) {
+		return section == "b1Wrapper" ? "b2Wrapper" : "b1Wrapper";
+	}
+	function emptying() {
+		return hintSteps[0].step == "empty";
+	}
+	// function hideExcept() {
+	// 	var section;
+	// 	if (emptying) { section = "b2Wrapper"; } else { section = "b1Wrapper" };
+	// 	var active = document.getElementsByClassName("active")[0];
+	// 	// we need to hide all the elements that aren't the correct action.
+	// 	if (active) { 
+	// 		console.log("called", active.className);
+	// 		active.className = active.className.replace(" active", "");
+	// 		active.style.opacity = 0;
+	// 	} else if (hintmode) {
+	// 		var target = document.getElementById(section).getElementsByClassName(hintSteps[0].step)[0];
+	// 		target.style.opacity = 1;
+	// 		target.className = target.className + " active";
+	// 	}
+	// }
 	function hideExcept() {
-		var section;
-		if (hintSteps[0].step == "empty") { section = "b2Wrapper"; } else { section = "b1Wrapper" };
-		var active = document.getElementsByClassName("active")[0];
-		// we need to hide all the elements that aren't the correct action.
-console.log(active, "active");
-		if (!active) { 
-console.log(active);
-			hideOrShowAll(0);
-		} else {
-			active.className = active.className.replace(" active", "");
+		if (emptying()) swapSection();
+		if (hintmode) {
+			var active = document.getElementsByClassName("active")[0];
+			unsetActiveElem(active);
 			active.style.opacity = 0;
+			setActiveElem(currentElem());
 		}
-		var target = document.getElementById(section).getElementsByClassName(hintSteps[0].step)[0];
-		target.style.opacity = 1;
-		target.className = target.className + " active";
 	}
 	function hideOrShowAll(n) {
 		var nodes = Array.prototype.slice.call(document.getElementsByClassName("move"));
 		nodes.forEach(function(node) { node.style.opacity = n;});
+	}
+	function currentElem() {
+		var sect = section;
+		if (emptying()) sect = swapSection(section); 
+		return document.getElementById(sect).getElementsByClassName(hintSteps[0].step)[0];
 	}
 	// click events
 	possibleButton.onclick = function() {
