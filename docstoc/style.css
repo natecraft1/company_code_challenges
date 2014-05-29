@@ -1,5 +1,6 @@
 html, body {
-	/*height: 100%;*/
+	height: 100%;
+	overflow: hidden;
 }
 body {
 	background-color: #F7F7F7;
@@ -109,10 +110,12 @@ button:hover {
 	box-shadow: 0 0 10px #9ecaed;
 	background: white;
 }
-#changeSizes {
-	float: right;
-	margin-top: 1%;
-	margin-right: 25%;
+#buttonWrapper {
+	float: left;
+	margin-left: 50px;
+	margin-top: 30px;
+}
+#changeSizes, #show_hints {
 	padding: 20px;
 	border-radius: 30px;
 	background: white;
@@ -120,12 +123,8 @@ button:hover {
 	color: #39a7ec;
 	border: 2px solid #CFD1D0;
 	font-size: 30px;
+	display: inline-block;
 }
-#possible {	
-}
-.active {
-	display: block;
-}
-.inactive {
-	
+#show_hints {
+	margin-right: 20px;
 }

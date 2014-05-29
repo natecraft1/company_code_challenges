@@ -12,7 +12,7 @@
  		<div id="b1" class="bucket"><p>0/</p></div>
  		<ul>
  			<li><button class="fill move">Fill</button></li>
- 			<li><button class="transfer move">Pour</button></li>
+ 			<li><button class="transfer move">Transfer</button></li>
  			<li><button class="empty move">Empty</button></li>
  		</ul>
  		<div class="history"></div>
@@ -21,20 +21,19 @@
  	<div id="b2" class="bucket"><p>0/</p></div>
  		<ul>
  			<li><button class="fill move">Fill</button></li>
- 			<li><button class="transfer move">Pour</button></li>
+ 			<li><button class="transfer move">Transfer</button></li>
  			<li><button class="empty move">Empty</button></li>
  		</ul>
  		<div class="history"></div>
  	</section>
- 	<div>
- 		<button id="possible">Show Hints</button>
+ 	<div id="buttonWrapper">
+ 		<button id="show_hints">Show Hints</button>
+ 		<button id="changeSizes">Change Bucket Sizes</button>
  	</div>
+	<!-- <p id="notPossible"></p> -->
  	<div id="target" class="top-right">Target: <span>4</span> Gallons</div>
- 	<button id="changeSizes" class="top-right">Change Bucket Sizes</button>
 
 <script>
-	document.body.style.height = window.innerHeight + "px";
-	// document.getElementsByTagName("section")[0].style.height = window.innerHeight/2 + "px";
 	var s = Snap(600,400);
 	var aspect_ratio = 822/567;
 	var lake = s.image("imgs/lake-figure-color.svg", 0, 0, 600, (600/aspect_ratio));
@@ -46,7 +45,7 @@
 	var b1CurrentHeight = b2CurrentHeight = 0;
 	var b1Element = document.getElementById("b1"), b2Element = document.getElementById("b2");
 	var targetSpan = document.getElementById("target").firstElementChild;
-	var possibleButton = document.getElementById("possible");
+	var show_hints = document.getElementById("show_hints");
 	var hintmode = false, hintSteps, section = null;
 
 	var buckets = { 
@@ -113,15 +112,6 @@
 		}
 		lake.animate({ "transform": m }, 1500);
 	}
-	var heightScale = function(Height) {
-		return ~~((Height/buckets.maxBucketHeight)*135);
-	}
-
- 	
-
-	console.log(buckets);
-	// water(5, 11, 4);
-	// console.log(step);
 
 	function trial(h1, h2, target) {
 		var hght1 = hght2 = 0, change, alotted;
@@ -132,7 +122,6 @@
 			if (hght1 == 0) {
 				hght1 = h1;
 				stepArr.push({"step": "fill", "state": [hght1, hght2]});
-				// console.log(hght1, hght2, "filled");
 			} else if (hght1 == h1
 				|| hght2 == 0) {
 				alotted = h2 - hght2;
@@ -140,11 +129,9 @@
 				hght2 += change;
 				hght1 -= change;
 				stepArr.push({"step": "transfer", "state": [hght1, hght2]});
-				// console.log(hght1, hght2, "transfered");
 			} else if (hght2 == h2) {
 				hght2 = 0;
 				stepArr.push({"step": "empty", "state": [hght1, hght2]});
-				// console.log(hght1, hght2, "emptied");
 			}
 		}
 		return { "count": newStep.count - 1, "steps": stepArr};
@@ -220,59 +207,37 @@
 			}
 		}	
 	}
-	// function hintMode() {
-	// 	if (hintmode) { 
-	// 		hideOrShowAll(1); 
-	// 		hideExcept();
-	// 		hintmode = false;
-	// 		possibleButton.innerHTML = "Show Hints"; 
-	// 		return;
-	// 	};
-
-	// 	possibleButton.innerHTML = "Hide Hints";
-	// 	hintmode = true;
-	// 	hideOrShowAll(0);
-	// 	var currentStep, section;
-	// 	// find which current state is closer to the end;
-	// 	if (!hintSteps) {
-	// 		var startWithOne = trial(buckets.b1.size, buckets.b2.size, buckets.requiredGallons);
-	// 		var startWithTwo = trial(buckets.b2.size, buckets.b1.size, buckets.requiredGallons);
-	// 		if (startWithOne.count < startWithTwo.count) {
-	// 			steps = startWithOne.steps;
-	// 		} else {
-	// 			steps = startWithTwo.steps;
-	// 		}
-	// 		hintSteps = steps.slice(currentIndex(steps)+1);
-	// 	} 		
-	// 	hideExcept();
-	// }
 	function hintMode() {
-		var steps, emptying;
+		var steps, emptying, currentInd;
 		if (!hintSteps) {
-			console.log("no hintSteps");
 			var startWithOne = trial(buckets.b1.size, buckets.b2.size, buckets.requiredGallons);
 			var startWithTwo = trial(buckets.b2.size, buckets.b1.size, buckets.requiredGallons);
-			if (startWithOne.count < startWithTwo.count) {
-				steps = startWithOne.steps;
-				section = "b1Wrapper";
-			} else {
-				steps = startWithTwo.steps;
-				section = 'b2Wrapper';
+			var indexOne = currentIndex(startWithOne.steps, 0, 1);
+			var indexTwo = currentIndex(startWithTwo.steps, 1, 0);
+			var remainingSteps1 = startWithOne.count - indexOne;
+			var remainingSteps2 = startWithTwo.count - indexTwo;
+			if (remainingSteps1 <= remainingSteps2) {
+					currentInd = indexOne;
+					steps = startWithOne.steps;
+					section = "b1Wrapper";
+				} else {
+					currentInd = indexTwo;
+					steps = startWithTwo.steps;
+					section = 'b2Wrapper';
 			}
-			// console.log(steps, currentIndex(steps));
-			hintSteps = steps.slice(currentIndex(steps)+2);
-			// console.log(hintSteps);
-			console.log(section);
+			if (currentInd < 0) { 
+				hintSteps = steps.slice(0);
+				hintSteps.unshift({"step": "empty"});
+			} else {
+				hintSteps = steps.slice(currentInd);
+			}
 			hideOrShowAll(0);
 			setActiveElem(currentElem());
-		
 		} else {
 			if (hintmode) {
-				console.log(hintmode);
 				hideOrShowAll(1);
-				unsetActiveElem(document.getElementsByClassName("active")[0]);
+				unsetActiveElem();
 			} else {
-				console.log("else")
 				hideOrShowAll(0);
 				setActiveElem(currentElem());
 			}
@@ -286,15 +251,17 @@
 		elem.style.opacity = 1;
 		elem.className = elem.className + " active";
 	}
-	function unsetActiveElem(elem) {
-		elem.className = elem.className.replace(" active", "");
+	function unsetActiveElem() {
+		var elem = document.getElementsByClassName("active")[0];
+		if (elem) elem.className = elem.className.replace(" active", "");
 	}
-	function currentIndex(steps) {
+	function currentIndex(steps, n, n2) {
 		for (var i = steps.length - 1; i >= 0; i--) {
-			if (steps[i].state[0] == buckets.b1.currentHeight && steps[i].state[1] == buckets.b2.currentHeight) {
-				return i;
-			} else { return 0 };
+			if (steps[i].state[n] == buckets.b1.currentHeight && steps[i].state[n2] == buckets.b2.currentHeight) {
+				return i+1;
+			}
 		}
+		return buckets.b1.currentHeight == 0 && buckets.b2.currentHeight == 0 ? 0 : -1;
 	}
 	function swapSection(section) {
 		return section == "b1Wrapper" ? "b2Wrapper" : "b1Wrapper";
@@ -302,26 +269,12 @@
 	function emptying() {
 		return hintSteps[0].step == "empty";
 	}
-	// function hideExcept() {
-	// 	var section;
-	// 	if (emptying) { section = "b2Wrapper"; } else { section = "b1Wrapper" };
-	// 	var active = document.getElementsByClassName("active")[0];
-	// 	// we need to hide all the elements that aren't the correct action.
-	// 	if (active) { 
-	// 		console.log("called", active.className);
-	// 		active.className = active.className.replace(" active", "");
-	// 		active.style.opacity = 0;
-	// 	} else if (hintmode) {
-	// 		var target = document.getElementById(section).getElementsByClassName(hintSteps[0].step)[0];
-	// 		target.style.opacity = 1;
-	// 		target.className = target.className + " active";
-	// 	}
-	// }
+
 	function hideExcept() {
-		if (emptying()) swapSection();
 		if (hintmode) {
+			if (emptying()) swapSection();
 			var active = document.getElementsByClassName("active")[0];
-			unsetActiveElem(active);
+			unsetActiveElem();
 			active.style.opacity = 0;
 			setActiveElem(currentElem());
 		}
@@ -336,10 +289,10 @@
 		return document.getElementById(sect).getElementsByClassName(hintSteps[0].step)[0];
 	}
 	// click events
-	possibleButton.onclick = function() {
+	show_hints.onclick = function() {
 		var greatestCF = gcd(buckets.b1.size, buckets.b2.size);
 		if (buckets.requiredGallons % greatestCF != 0) {
-			this.innerHTML = "This is not possible because " + greatestCF + " is the highest factor of both " + buckets.b1.size + " and " + buckets.b2.size + " but " + greatestCF + " is not a factor of " + buckets.requiredGallons + "!";
+			alert("This is not possible because " + greatestCF + " is the highest common factor of both " + buckets.b1.size + " and " + buckets.b2.size + ", but " + greatestCF + " is not a factor of " + buckets.requiredGallons + "!");
 		} else { hintMode(); }
 	};
 
@@ -366,7 +319,6 @@
 			if (step.check(buckets.b1.currentHeight, buckets.b2.currentHeight)) { 
 				alert("You did it in " + step.count + " steps!"); 
 			} else {
-
 				if (hintmode) { hintSteps.shift(); hideExcept(); }
 			}
 		}
@@ -384,11 +336,14 @@
 		var rand1 = Math.random()*50|0;
 		var rand2 = Math.random()*50|0;
 		setup(rand1, rand2);
-		var newTarget = (rand1 + rand2)*Math.random()|0;
+		var newTarget = (rand1 + rand2-1)*Math.random()|0;
 		targetSpan.innerHTML = newTarget;
 		buckets.requiredGallons = newTarget;
 		historyElems[0].innerHTML = "";
 		historyElems[1].innerHTML = "";
+		hintSteps = null;
+		if (hintmode) { hideOrShowAll(1); hintmode = false; };
+		unsetActiveElem();
 	}
 // helpers
 	function gcd(a, b) {
@@ -404,7 +359,11 @@
    }
    return target;
   }
+  function heightScale(Height) {
+  	return ~~((Height/buckets.maxBucketHeight)*135);
+  }
 
 </script>
 </body>
 </html>
+
